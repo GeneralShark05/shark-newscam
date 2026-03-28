@@ -83,9 +83,9 @@ local function exitCamera()
     RenderScriptCams(false, false, 0, true, false)
 end
 
-local msg = "Breaking News"
-local title = "Los Santos, SA / Weazel News Exclusive"
-local bottom = "We bring you the LATEST NEWS live as it happens"
+local headlineText = "Breaking News"
+local topText = "Los Santos, SA / Weazel News Exclusive"
+local subtitleText = "We bring you the LATEST NEWS live as it happens"
 
 local function openNewsEditor()
     local input = lib.inputDialog('Weazel News Editor', {
@@ -94,7 +94,7 @@ local function openNewsEditor()
             label = 'Message',
             description = 'Main message text',
             placeholder = 'Breaking News',
-            default = msg,
+            default = headlineText,
             required = true,
             min = 1,
             max = 100
@@ -104,7 +104,7 @@ local function openNewsEditor()
             label = 'Title',
             description = 'Top banner title',
             placeholder = 'Los Santos, SA / Weazel News Exclusive',
-            default = title,
+            default = topText,
             required = true,
             min = 1,
             max = 100
@@ -114,7 +114,7 @@ local function openNewsEditor()
             label = 'Bottom Text',
             description = 'Bottom ticker / subtitle text',
             placeholder = 'We bring you the LATEST NEWS live as it happens',
-            default = bottom,
+            default = subtitleText,
             required = true,
             min = 1,
             max = 200
@@ -123,9 +123,9 @@ local function openNewsEditor()
 
     if not input then return end
 
-    msg = input[1]
-    title = input[2]
-    bottom = input[3]
+    headlineText = input[1]
+    topText = input[2]
+    subtitleText = input[3]
 
     lib.notify({
         title = 'Weazel News',
@@ -137,6 +137,16 @@ end
 RegisterCommand('editnews', function()
     openNewsEditor()
 end, false)
+
+local function hideFrameworkHud(state)
+    --exports["jg-hud"]:toggleHud(not state)
+    --ExecuteCommand('hud')
+    if state then
+        --TriggerEvent('qbx_hud:client:hideHud')
+    else
+        --TriggerEvent('qbx_hud:client:showHud')
+    end
+end
 
 RegisterNetEvent("shark-newscam:toggleCam")
 AddEventHandler("shark-newscam:toggleCam", function()
@@ -196,47 +206,38 @@ AddEventHandler("shark-newscam:toggleCam", function()
         CreateThread(function()
             local movieMode = false
             local newsMode = false
-            local securityScaleform, scaleform2 = nil, nil
+            local newsScaleform = nil
             local freecam = nil
             while holdingCam do
                 Wait(10)
 
-                -- local scaleform = RequestScaleformMovie("security_camera")
-
-                -- while not HasScaleformMovieLoaded(scaleform) do
-                -- 	Wait(10)
-                -- end
-                if IsControlJustReleased(1, 244) then
+                if IsControlJustPressed(1, 244) then
                     movieMode = true
                     engagedCamera = true
-                elseif IsControlJustReleased(1, 38) then
+                    hideFrameworkHud(true)
+                elseif IsControlJustPressed(1, 38) then
                     newsMode = true
                     engagedCamera = true
+                    hideFrameworkHud(true)
 
-                    --securityScaleform = RequestScaleformMovie("security_camera")
-                    scaleform2 = RequestScaleformMovie("breaking_news")
-                    --[[while not HasScaleformMovieLoaded(securityScaleform) do
-                        Wait(10)
-                    end]]--
-                    while not HasScaleformMovieLoaded(scaleform2) do
+                    newsScaleform = RequestScaleformMovie("breaking_news")
+                    while not HasScaleformMovieLoaded(newsScaleform) do
                         Wait(10)
                     end
 
-                    freecam = CreateCam("DEFAULT_SCRIPTED_FLY_CAMERA", true)
-                    --PushScaleformMovieFunction(securityScaleform, "SET_CAM_LOGO")
                     PopScaleformMovieFunctionVoid()
-                    PushScaleformMovieFunction(scaleform2, "breaking_news")
+                    PushScaleformMovieFunction(newsScaleform, "breaking_news")
                     PopScaleformMovieFunctionVoid()
-                    BeginScaleformMovieMethod(scaleform2, 'SET_TEXT')
-                    PushScaleformMovieMethodParameterString(msg)
-                    PushScaleformMovieMethodParameterString(bottom)
+                    BeginScaleformMovieMethod(newsScaleform, 'SET_TEXT')
+                    PushScaleformMovieMethodParameterString(headlineText)
+                    PushScaleformMovieMethodParameterString(subtitleText)
                     EndScaleformMovieMethod()
-                    BeginScaleformMovieMethod(scaleform2, 'SET_SCROLL_TEXT')
+                    BeginScaleformMovieMethod(newsScaleform, 'SET_SCROLL_TEXT')
                     PushScaleformMovieMethodParameterInt(0) -- top ticker
                     PushScaleformMovieMethodParameterInt(0) -- Since this is the first string, start at 0
-                    PushScaleformMovieMethodParameterString(title)
+                    PushScaleformMovieMethodParameterString(topText)
                     EndScaleformMovieMethod()
-                    BeginScaleformMovieMethod(scaleform2, 'DISPLAY_SCROLL_TEXT')
+                    BeginScaleformMovieMethod(newsScaleform, 'DISPLAY_SCROLL_TEXT')
                     PushScaleformMovieMethodParameterInt(0) -- Top ticker
                     PushScaleformMovieMethodParameterInt(0) -- Index of string
                     EndScaleformMovieMethod()
@@ -254,6 +255,7 @@ AddEventHandler("shark-newscam:toggleCam", function()
                 while engagedCamera and not IsEntityDead(ped) do
                     if IsControlJustPressed(0, 177) then
                         exitCamera()
+                        hideFrameworkHud(false)
                     end
                     SetEntityRotation(ped, 0, 0, NewZ, 2, true)
 
@@ -264,11 +266,8 @@ AddEventHandler("shark-newscam:toggleCam", function()
                     HideHUDThisFrame()
 
                     if newsMode then
-                        --DrawScaleformMovieFullscreen(securityScaleform, 255, 255, 255, 255, 0)
-                        DrawScaleformMovie(scaleform2, 0.5, 0.63, 1.0, 1.0, 255, 255, 255, 255, 0)
+                        DrawScaleformMovie(newsScaleform, 0.5, 0.63, 1.0, 1.0, 255, 255, 255, 255, 0)
                     end
-
-                    ---DrawScaleformMovieFullscreen(scaleform, 255, 255, 255, 255)
 
                     local camHeading = GetGameplayCamRelativeHeading()
                     local camPitch = GetGameplayCamRelativePitch()
@@ -292,11 +291,14 @@ AddEventHandler("shark-newscam:toggleCam", function()
                     Wait(1)
                 end
                 if newsMode then
-                    SetScaleformMovieAsNoLongerNeeded(securityScaleform)
-                    SetScaleformMovieAsNoLongerNeeded(scaleform2)
+                    SetScaleformMovieAsNoLongerNeeded(newsScaleform)
+                    newsMode = false
+                end
+                if IsControlJustPressed(0, 177) then
+                    holdingCam = false
+                    DestroyCam(freecam, false)
                 end
             end
-            DestroyCam(freecam, false)
         end)
     else
         holdingCam = false
