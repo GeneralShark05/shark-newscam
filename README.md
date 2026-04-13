@@ -8,6 +8,8 @@ A new and improved version of the classic news camera! Equip the item, use /edit
 - [ox_lib](https://github.com/overextended/ox_lib)
 - [ox_inventory](https://github.com/overextended/ox_inventory)
 
+## Exports
+'editnews' - Opens the menu to edit the news header
 
 ## Install
 Ensure ox_lib and ox_inventory prior
@@ -25,6 +27,30 @@ Add the following to your data/items.lua in ox_inventory
 			event = 'shark-newscam:toggleCam'
 		}
 	},
+
+	["newsbmic"] = {
+		label = "Boom Microphone",
+		weight = 100,
+		stack = false,
+		close = true,
+		description = "A Useable BoomMic",
+		client = {
+			event = 'shark-newscam:togglebmic'
+		}
+	},
+
+	["newsmic"] = {
+		label = "News Microphone",
+		weight = 100,
+		stack = false,
+		close = true,
+		description = "A microphone for the news",
+		client = {
+			event = 'shark-newscam:togglemic'
+		}
+	},
+
+
 
 ## Credits
 RowDog created the original script this is based on, and his work is foundational for this. Wouldn't have been possible without his original version https://forum.cfx.re/t/release-weazel-news-camera-and-mic-updated/116118
